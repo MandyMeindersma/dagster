@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Any, Optional
 
 from dagster_shared.record import record
@@ -57,6 +58,8 @@ class OmniDocument:
     folder: Optional[OmniFolder]
     labels: list[OmniLabel]
     queries: list["OmniQuery"]
+    favorites: Optional[int] = None
+    views: Optional[int] = None
 
     @classmethod
     def from_json(cls, data: dict[str, Any], queries: list["OmniQuery"]) -> "OmniDocument":
@@ -81,6 +84,8 @@ class OmniDocument:
             folder=folder,
             labels=labels,
             queries=queries,
+            favorites=data.get("_count", {}).get("favorites", None),
+            views=data.get("_count", {}).get("views", None),
         )
 
 
@@ -120,11 +125,56 @@ class OmniQuery:
 
 @whitelist_for_serdes
 @record
+class OmniUser:
+    """Represents an Omni user with all user information in a single class."""
+
+    id: str
+    name: Optional[str]
+    display_name: str
+    user_name: str
+    active: bool
+    primary_email: Optional[str]
+    groups: list[str]
+    created: str
+    last_modified: str
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> "OmniUser":
+        """Create OmniUser from JSON response data."""
+        primary_email = next(
+            (email["value"] for email in data.get("emails", []) if email["primary"]), None
+        )
+        groups = [group["display"] for group in data.get("groups", [])]
+
+        return cls(
+            id=data["id"],
+            name=data.get("displayName") or data.get("userName") or "",
+            display_name=data.get("displayName", ""),
+            user_name=data.get("userName", ""),
+            active=data.get("active", True),
+            primary_email=primary_email,
+            groups=groups,
+            created=data.get("meta", {}).get("created", ""),
+            last_modified=data.get("meta", {}).get("lastModified", ""),
+        )
+
+
+@whitelist_for_serdes
+@record
 class OmniWorkspaceData:
     """Serializable container object for recording the state of the Omni API at a given point in time.
 
     Properties:
         documents: list[OmniDocument]
+        users: list[OmniUser]
     """
 
     documents: list[OmniDocument]
+    users: list[OmniUser]
+
+    @cached_property
+    def _users_by_id(self) -> dict[str, OmniUser]:
+        return {user.id: user for user in self.users}
+
+    def get_user(self, user_id: str) -> Optional[OmniUser]:
+        return self._users_by_id.get(user_id)
