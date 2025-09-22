@@ -179,10 +179,17 @@ spec:
           {{- end }}
         {{- end }}
         {{- end }}
-        {{- if $deployment.volumeMounts }}
+        {{- if or $deployment.volumeMounts $deployment.instanceConfig }}
           volumeMounts:
+          {{- if $deployment.instanceConfig }}
+          - name: dagster-instance
+            mountPath: "{{ $deployment.instanceConfig.mountPath }}/dagster.yaml"
+            subPath: dagster.yaml
+          {{- end }}
+          {{- if $deployment.volumeMounts }}
           {{- range $volumeMount := $deployment.volumeMounts }}
             - {{- $volumeMount | toYaml | nindent 14 }}
+          {{- end }}
           {{- end }}
         {{- end }}
         {{- if $deployment.sidecarContainers }}
@@ -191,10 +198,17 @@ spec:
       nodeSelector: {{ $deployment.nodeSelector | toYaml | nindent 8 }}
       affinity: {{ $deployment.affinity | toYaml | nindent 8 }}
       tolerations: {{- $deployment.tolerations | toYaml | nindent 8 }}
-      {{- if $deployment.volumes }}
+      {{- if or $deployment.volumes $deployment.instanceConfig }}
       volumes:
+        {{- if $deployment.instanceConfig }}
+        - name: dagster-instance
+          configMap:
+            name: {{ $deployment.instanceConfig.configMapName }}
+        {{- end }}
+        {{- if $deployment.volumes }}
         {{- range $volume := $deployment.volumes }}
         - {{- $volume | toYaml | nindent 10 }}
+        {{- end }}
         {{- end }}
       {{- end }}
       {{- if $deployment.schedulerName }}

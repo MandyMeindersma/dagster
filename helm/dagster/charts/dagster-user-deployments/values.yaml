@@ -53,6 +53,12 @@ deployments:
     includeConfigInLaunchedRuns:
       enabled: true
 
+    # Optional: Mount Dagster instance configuration from a ConfigMap
+    # This automatically creates a volume and volume mount for the instance config file
+    # instanceConfig:
+    #   configMapName: "my-dagster-instance"
+    #   mountPath: "/opt/dagster/dagster_home"  # defaults to "/opt/dagster/dagster_home"
+
     # Additional volumes that should be included in the Deployment's Pod. See:
     # https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
     #

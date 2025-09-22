@@ -9,6 +9,11 @@ class UserDeploymentIncludeConfigInLaunchedRuns(BaseModel):
     enabled: bool
 
 
+class UserDeploymentInstanceConfig(BaseModel):
+    configMapName: str
+    mountPath: Optional[str] = "/opt/dagster/dagster_home"
+
+
 ReadinessProbeWithEnabled = create_model(
     "ReadinessProbeWithEnabled", __base__=(kubernetes.ReadinessProbe), enabled=(bool, ...)
 )
@@ -20,6 +25,7 @@ class UserDeployment(BaseModel):
     dagsterApiGrpcArgs: Optional[list[str]] = None
     codeServerArgs: Optional[list[str]] = None
     includeConfigInLaunchedRuns: Optional[UserDeploymentIncludeConfigInLaunchedRuns] = None
+    instanceConfig: Optional[UserDeploymentInstanceConfig] = None
     deploymentNamespace: Optional[str] = None
     port: int
     env: Optional[Union[dict[str, str], list[kubernetes.EnvVar]]] = None

@@ -268,6 +268,17 @@
                     ],
                     "default": null
                 },
+                "instanceConfig": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UserDeploymentInstanceConfig"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null
+                },
                 "deploymentNamespace": {
                     "anyOf": [
                         {
@@ -563,6 +574,31 @@
                 "enabled"
             ],
             "title": "UserDeploymentIncludeConfigInLaunchedRuns",
+            "type": "object"
+        },
+        "UserDeploymentInstanceConfig": {
+            "properties": {
+                "configMapName": {
+                    "title": "Configmapname",
+                    "type": "string"
+                },
+                "mountPath": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": "/opt/dagster/dagster_home",
+                    "title": "Mountpath"
+                }
+            },
+            "required": [
+                "configMapName"
+            ],
+            "title": "UserDeploymentInstanceConfig",
             "type": "object"
         },
         "Volume": {

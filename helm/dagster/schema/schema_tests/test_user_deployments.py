@@ -1333,6 +1333,112 @@ def test_code_server_cli(template: HelmTemplate, user_deployment_configmap_templ
     }
 
 
+def test_deployment_instance_config(template: HelmTemplate, user_deployment_configmap_template):
+    """Test that instanceConfig field automatically creates volume and volume mount."""
+    from schema.charts.dagster_user_deployments.subschema.user_deployments import (
+        UserDeploymentInstanceConfig,
+    )
+
+    deployment = UserDeployment.construct(
+        name="foo",
+        image=kubernetes.Image(repository="repo/foo", tag="tag1", pullPolicy="Always"),
+        dagsterApiGrpcArgs=["-m", "foo"],
+        port=3030,
+        instanceConfig=UserDeploymentInstanceConfig(
+            configMapName="my-instance-config",
+        ),
+    )
+
+    helm_values = DagsterHelmValues.construct(
+        dagsterUserDeployments=UserDeployments.construct(deployments=[deployment])
+    )
+
+    [dagster_user_deployment] = template.render(helm_values)
+
+    # Check that volume mount exists
+    volume_mounts = dagster_user_deployment.spec.template.spec.containers[0].volume_mounts
+    assert volume_mounts is not None
+    assert len(volume_mounts) == 1
+    assert volume_mounts[0].name == "dagster-instance"
+    assert volume_mounts[0].mount_path == "/opt/dagster/dagster_home/dagster.yaml"
+    assert volume_mounts[0].sub_path == "dagster.yaml"
+
+    # Check that volume exists
+    volumes = dagster_user_deployment.spec.template.spec.volumes
+    assert volumes is not None
+    assert len(volumes) == 1
+    assert volumes[0].name == "dagster-instance"
+    assert volumes[0].config_map.name == "my-instance-config"
+
+
+def test_deployment_instance_config_with_custom_mount_path(
+    template: HelmTemplate, user_deployment_configmap_template
+):
+    """Test that instanceConfig respects custom mountPath."""
+    from schema.charts.dagster_user_deployments.subschema.user_deployments import (
+        UserDeploymentInstanceConfig,
+    )
+
+    deployment = UserDeployment.construct(
+        name="foo",
+        image=kubernetes.Image(repository="repo/foo", tag="tag1", pullPolicy="Always"),
+        dagsterApiGrpcArgs=["-m", "foo"],
+        port=3030,
+        instanceConfig=UserDeploymentInstanceConfig(
+            configMapName="my-instance-config",
+            mountPath="/custom/dagster/path",
+        ),
+    )
+
+    helm_values = DagsterHelmValues.construct(
+        dagsterUserDeployments=UserDeployments.construct(deployments=[deployment])
+    )
+
+    [dagster_user_deployment] = template.render(helm_values)
+
+    # Check mount path is customized
+    volume_mounts = dagster_user_deployment.spec.template.spec.containers[0].volume_mounts
+    assert volume_mounts[0].mount_path == "/custom/dagster/path/dagster.yaml"
+
+
+def test_deployment_without_instance_config_unchanged(
+    template: HelmTemplate, user_deployment_configmap_template
+):
+    """Test that deployments without instanceConfig work exactly as before."""
+    deployment = UserDeployment.construct(
+        name="foo",
+        image=kubernetes.Image(repository="repo/foo", tag="tag1", pullPolicy="Always"),
+        dagsterApiGrpcArgs=["-m", "foo"],
+        port=3030,
+        volumes=[
+            kubernetes.Volume.construct(
+                None, name="custom-volume", configMap={"name": "custom-config"}
+            )
+        ],
+        volumeMounts=[
+            kubernetes.VolumeMount.construct(None, name="custom-volume", mountPath="/custom/path")
+        ],
+    )
+
+    helm_values = DagsterHelmValues.construct(
+        dagsterUserDeployments=UserDeployments.construct(deployments=[deployment])
+    )
+
+    [dagster_user_deployment] = template.render(helm_values)
+
+    # Should only have the custom volume mount, no instance config
+    volume_mounts = dagster_user_deployment.spec.template.spec.containers[0].volume_mounts
+    assert volume_mounts is not None
+    assert len(volume_mounts) == 1
+    assert volume_mounts[0].name == "custom-volume"
+
+    # Should only have the custom volume, no instance config
+    volumes = dagster_user_deployment.spec.template.spec.volumes
+    assert volumes is not None
+    assert len(volumes) == 1
+    assert volumes[0].name == "custom-volume"
+
+
 def test_env_container_context(template: HelmTemplate, user_deployment_configmap_template):
     # new env: list. Gets written to container
     deployment = UserDeployment.construct(
