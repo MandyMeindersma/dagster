@@ -20,6 +20,7 @@ export type RunReExecutionQuery = {
           __typename: 'ExecutionPlan';
           artifactsPersisted: boolean;
           assetSelection: Array<string>;
+          assetKeys: Array<{__typename: 'AssetKey'; path: Array<string>}>;
           steps: Array<{
             __typename: 'ExecutionStep';
             key: string;
@@ -34,4 +35,4 @@ export type RunReExecutionQuery = {
     | {__typename: 'RunNotFoundError'};
 };
 
-export const RunReExecutionQueryVersion = '6292ae2ffce17df5b8d31c3ef78356059e970c58b4271d1a9a6d21a0a09a10b0';
+export const RunReExecutionQueryVersion = '45eb86c3e7063547204dcfb34e602095bbf2b9a5542f7ef14f34f7ce74630e75';

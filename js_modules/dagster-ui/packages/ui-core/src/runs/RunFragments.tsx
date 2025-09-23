@@ -44,6 +44,9 @@ export const RUN_FRAGMENT = gql`
     executionPlan {
       artifactsPersisted
       assetSelection
+      assetKeys {
+        path
+      }
       ...ExecutionPlanToGraphFragment
     }
     stepKeysToExecute

@@ -48,6 +48,7 @@ export type RunActionButtonsTestQuery = {
           __typename: 'ExecutionPlan';
           artifactsPersisted: boolean;
           assetSelection: Array<string>;
+          assetKeys: Array<{__typename: 'AssetKey'; path: Array<string>}>;
           steps: Array<{
             __typename: 'ExecutionStep';
             key: string;
@@ -62,4 +63,4 @@ export type RunActionButtonsTestQuery = {
     | {__typename: 'RunNotFoundError'};
 };
 
-export const RunActionButtonsTestQueryVersion = 'eaab1aaf56a17b1bb20c13326a1c672246ae3ad931deb30085356edcedc45c47';
+export const RunActionButtonsTestQueryVersion = 'a76b8c8fd7a9997260cba8848e586c74f35ffb8546ec6bed9dddeba08657817d';

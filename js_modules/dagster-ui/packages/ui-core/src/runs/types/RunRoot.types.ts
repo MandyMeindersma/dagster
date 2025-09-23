@@ -50,6 +50,7 @@ export type RunRootQuery = {
           __typename: 'ExecutionPlan';
           artifactsPersisted: boolean;
           assetSelection: Array<string>;
+          assetKeys: Array<{__typename: 'AssetKey'; path: Array<string>}>;
           steps: Array<{
             __typename: 'ExecutionStep';
             key: string;
@@ -64,4 +65,4 @@ export type RunRootQuery = {
     | {__typename: 'RunNotFoundError'};
 };
 
-export const RunRootQueryVersion = '422484009a32e9f23d5fa1563b6a8d168c9df8cb8bdac1252947ef2e16f37897';
+export const RunRootQueryVersion = 'c3be11de53c4846d975dd8658d1754e0f068ad6b8dae41ef89cb8a73f687fda0';
